@@ -149,7 +149,8 @@ if st.button("🚀 Lancer l'optimisation", type="primary"):
     st.success("✅ Solution optimale trouvée !")
 
     # === Tableau récap par ballon ===
-    sorted_ballons = sorted(ballons, key=lambda k: int(k['id']))
+    #sorted_ballons = sorted(ballons, key=lambda k: int(k['id']))  #ancienne version
+    sorted_ballons = sorted(ballons, key=lambda k: int(str(k['id']).strip() or 0))
     recap = []
     for b in sorted_ballons:
         original_b_idx = ballons.index(b)
