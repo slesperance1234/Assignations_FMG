@@ -10,7 +10,7 @@ st.write("Remplir les sections **Ballons** et **Passagers**")
 # === Saisie interactive via tableaux éditables ===
 st.subheader("📦 Ballons")
 defaut_ballons = pd.DataFrame([
-    {"id": "21", "max_poids": 385, "max_passagers": 2},
+    {"id": "21", "max_poids": 384, "max_passagers": 2},
     {"id": "03", "max_poids": 400, "max_passagers": 2},
     {"id": "13", "max_poids": 350, "max_passagers": 3},
     {"id": "02", "max_poids": 500, "max_passagers": 3},
