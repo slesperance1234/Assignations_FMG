@@ -50,7 +50,9 @@ defaut_passagers = pd.DataFrame([
   {"contrat": "185698", "poids": 159},
   {"contrat": "185698", "poids": 165},
   {"contrat": "185698", "poids": 195},
-  {"contrat": "185698", "poids": 113}
+  {"contrat": "185698", "poids": 113},
+    {"contrat": "180759", "poids": 118},
+    {"contrat": "180759", "poids": 160},
 ])
 df_passagers = st.data_editor(defaut_passagers, num_rows="dynamic", width=300)
 
