@@ -7,3 +7,5 @@ openpyxl>=3.1.0  # pour lecture/écriture Excel
 
 # Optimisation (Google OR-Tools)
 ortools>=9.9.0
+
+pdfplumber
