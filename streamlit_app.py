@@ -1,3 +1,5 @@
+import io
+import re
 import pandas as pd
 import streamlit as st
 from ortools.linear_solver import pywraplp
@@ -7,52 +9,179 @@ st.title("🎈 Optimisation des passagers FMG")
 
 st.write("Remplir les sections **Ballons** et **Passagers**")
 
-# === Saisie interactive via tableaux éditables ===
-st.subheader("📦 Ballons")
-defaut_ballons = pd.DataFrame([
-    {"id": "03", "max_poids": 400, "max_passagers": 2},
-    {"id": "09", "max_poids": 350, "max_passagers": 2},
-    {"id": "11", "max_poids": 350, "max_passagers": 2},
-    {"id": "02", "max_poids": 500, "max_passagers": 3},
-    {"id": "07", "max_poids": 2100, "max_passagers": 12},
-    {"id": "08", "max_poids": 1300, "max_passagers": 8},
-    {"id": "10", "max_poids": 300, "max_passagers": 3},
-])
-df_ballons = st.data_editor(defaut_ballons, num_rows="dynamic", width=500)
+# === Upload PDF/CSV/Excel pour remplacer la liste des passagers ===
+st.subheader("📥 Importer une liste de passagers (optionnel)")
+uploaded = st.file_uploader("Déposez un fichier PDF, CSV ou Excel contenant la table (contrat en 1ère colonne, poids en 3ème colonne). Les poids dans le PDF sont en livres (lbs) et seront conservés tels quels.", type=["pdf", "csv", "xlsx"])
 
-st.subheader("👥 Passagers")
-defaut_passagers = pd.DataFrame([
-  {"contrat": "88132", "poids": 185},
-  {"contrat": "88132", "poids": 225},
-  {"contrat": "88132", "poids": 130},
-  {"contrat": "119420", "poids": 220},
-  {"contrat": "119420", "poids": 145},
-  {"contrat": "134645", "poids": 165},
-  {"contrat": "134645", "poids": 187},
-  {"contrat": "145629", "poids": 200},
-  {"contrat": "145629", "poids": 145},
-  {"contrat": "168087", "poids": 185},
-  {"contrat": "168087", "poids": 125},
-  {"contrat": "171618", "poids": 230},
-  {"contrat": "171618", "poids": 128},
-  {"contrat": "172827", "poids": 140},
-  {"contrat": "172827", "poids": 100},
-  {"contrat": "172827", "poids": 220},
-  {"contrat": "172827", "poids": 225},
-  {"contrat": "178771", "poids": 130},
-  {"contrat": "178771", "poids": 155},
-  {"contrat": "179404", "poids": 154},
-  {"contrat": "179404", "poids": 136},
-  {"contrat": "185212", "poids": 140},
-  {"contrat": "185212", "poids": 143},
-  {"contrat": "185272", "poids": 270},
-  {"contrat": "185272", "poids": 140},
-  {"contrat": "185698", "poids": 159},
-  {"contrat": "185698", "poids": 165},
-  {"contrat": "185698", "poids": 195},
-  {"contrat": "185698", "poids": 113},
- ])
-df_passagers = st.data_editor(defaut_passagers, num_rows="dynamic", width=300)
+def parse_pdf_passengers(file_bytes):
+    try:
+        import pdfplumber
+    except Exception:
+        raise RuntimeError("Le package 'pdfplumber' n'est pas installé. Installez-le avec `pip install pdfplumber`.")
+    buf = io.BytesIO(file_bytes)
+    rows = []
+    with pdfplumber.open(buf) as pdf:
+        for page in pdf.pages:
+            # try to extract tables
+            try:
+                tables = page.extract_tables()
+            except Exception:
+                tables = []
+            for table in tables:
+                for row in table:
+                    # ignore header-like rows
+                    if not row:
+                        continue
+                    # normalize row entries
+                    row_vals = [("" if v is None else str(v).strip()) for v in row]
+                    # If row has at least 3 columns, take col0 as contrat and col2 as poids
+                    if len(row_vals) >= 3:
+                        contrat = row_vals[0]
+                        poids = row_vals[2]
+                        # skip header lines
+                        if re.search(r'(?i)nom|poids|#|contrat', " ".join(row_vals)):
+                            continue
+                        rows.append((contrat, poids))
+            # fallback: if no tables or coarse text, try regex on page text
+            if not rows:
+                text = page.extract_text() or ""
+                # lines like: 83683  Rodeghiero Sylvie  152  Non ...
+                for line in text.splitlines():
+                    m = re.match(r'^\s*(\d{3,})\b.*?\b(\d{2,3})\b', line)
+                    if m:
+                        rows.append((m.group(1), m.group(2)))
+    # Post-process rows into DataFrame
+    cleaned = []
+    for contrat, poids in rows:
+        # extract digits from contract
+        c = re.sub(r'\D', '', contrat)
+        p = re.search(r'(\d+)', str(poids))
+        if c and p:
+            try:
+                cleaned.append({"contrat": c, "poids": int(p.group(1))})
+            except ValueError:
+                continue
+    if not cleaned:
+        raise RuntimeError("Aucune donnée exploitables trouvée dans le PDF.")
+    return pd.DataFrame(cleaned)
+
+def parse_csv_or_excel(uploaded_file):
+    name = uploaded_file.name.lower()
+    try:
+        if name.endswith(".csv"):
+            df = pd.read_csv(uploaded_file)
+        else:
+            df = pd.read_excel(uploaded_file)
+    except Exception as e:
+        raise RuntimeError(f"Erreur lors de la lecture du fichier: {e}")
+    # heuristique : chercher colonnes contenant 'contrat' et 'poids' ou prendre la 1ère et 3ème
+    cols = [c.lower() for c in df.columns.astype(str)]
+    contrat_col = None
+    poids_col = None
+    for c in df.columns:
+        lc = str(c).lower()
+        if 'contrat' in lc or '#' == lc.strip():
+            contrat_col = c
+        if 'poids' in lc:
+            poids_col = c
+    if contrat_col is None:
+        contrat_col = df.columns[0]
+    if poids_col is None:
+        # try third column if exists
+        if len(df.columns) >= 3:
+            poids_col = df.columns[2]
+        else:
+            poids_col = df.columns[1] if len(df.columns) >= 2 else df.columns[0]
+    out = pd.DataFrame({
+        "contrat": df[contrat_col].astype(str).str.extract(r'(\d+)')[0],
+        "poids": pd.to_numeric(df[poids_col], errors='coerce').astype('Int64')
+    }).dropna(subset=["contrat", "poids"])
+    out["poids"] = out["poids"].astype(int)
+    return out
+
+df_passagers = None
+if uploaded is not None:
+    try:
+        if uploaded.type == "application/pdf" or uploaded.name.lower().endswith(".pdf"):
+            try:
+                df_parsed = parse_pdf_passengers(uploaded.read())
+            except RuntimeError as e:
+                st.error(str(e))
+                df_parsed = None
+        else:
+            # CSV or Excel
+            try:
+                df_parsed = parse_csv_or_excel(uploaded)
+            except RuntimeError as e:
+                st.error(str(e))
+                df_parsed = None
+        if df_parsed is not None:
+            # Les poids provenant du PDF sont en livres (lbs) et seront conservés tels quels
+            st.write("Aperçu des passagers importés (vous pouvez corriger ci-dessous) :")
+            df_passagers = st.data_editor(df_parsed.rename(columns={"contrat": "contrat", "poids": "poids"}), num_rows="dynamic", width=300)
+    except Exception as e:
+        st.error(f"Erreur lors de l'import : {e}")
+
+# === Saisie interactive via tableaux éditables si pas d'import ou après import ===
+if df_passagers is None:
+    st.subheader("📦 Ballons")
+    defaut_ballons = pd.DataFrame([
+        {"id": "03", "max_poids": 400, "max_passagers": 2},
+        {"id": "09", "max_poids": 350, "max_passagers": 2},
+        {"id": "11", "max_poids": 350, "max_passagers": 2},
+        {"id": "02", "max_poids": 500, "max_passagers": 3},
+        {"id": "07", "max_poids": 2100, "max_passagers": 12},
+        {"id": "08", "max_poids": 1300, "max_passagers": 8},
+        {"id": "10", "max_poids": 300, "max_passagers": 3},
+    ])
+    df_ballons = st.data_editor(defaut_ballons, num_rows="dynamic", width=500)
+
+    st.subheader("👥 Passagers")
+    defaut_passagers = pd.DataFrame([
+      {"contrat": "88132", "poids": 185},
+      {"contrat": "88132", "poids": 225},
+      {"contrat": "88132", "poids": 130},
+      {"contrat": "119420", "poids": 220},
+      {"contrat": "119420", "poids": 145},
+      {"contrat": "134645", "poids": 165},
+      {"contrat": "134645", "poids": 187},
+      {"contrat": "145629", "poids": 200},
+      {"contrat": "145629", "poids": 145},
+      {"contrat": "168087", "poids": 185},
+      {"contrat": "168087", "poids": 125},
+      {"contrat": "171618", "poids": 230},
+      {"contrat": "171618", "poids": 128},
+      {"contrat": "172827", "poids": 140},
+      {"contrat": "172827", "poids": 100},
+      {"contrat": "172827", "poids": 220},
+      {"contrat": "172827", "poids": 225},
+      {"contrat": "178771", "poids": 130},
+      {"contrat": "178771", "poids": 155},
+      {"contrat": "179404", "poids": 154},
+      {"contrat": "179404", "poids": 136},
+      {"contrat": "185212", "poids": 140},
+      {"contrat": "185212", "poids": 143},
+      {"contrat": "185272", "poids": 270},
+      {"contrat": "185272", "poids": 140},
+      {"contrat": "185698", "poids": 159},
+      {"contrat": "185698", "poids": 165},
+      {"contrat": "185698", "poids": 195},
+      {"contrat": "185698", "poids": 113},
+     ])
+    df_passagers = st.data_editor(defaut_passagers, num_rows="dynamic", width=300)
+else:
+    # If we had an upload, ensure balloons editor is still shown
+    st.subheader("📦 Ballons")
+    defaut_ballons = pd.DataFrame([
+        {"id": "03", "max_poids": 400, "max_passagers": 2},
+        {"id": "09", "max_poids": 350, "max_passagers": 2},
+        {"id": "11", "max_poids": 350, "max_passagers": 2},
+        {"id": "02", "max_poids": 500, "max_passagers": 3},
+        {"id": "07", "max_poids": 2100, "max_passagers": 12},
+        {"id": "08", "max_poids": 1300, "max_passagers": 8},
+        {"id": "10", "max_poids": 300, "max_passagers": 3},
+    ])
+    df_ballons = st.data_editor(defaut_ballons, num_rows="dynamic", width=500)
 
 # Convertir en listes de dictionnaires
 ballons = df_ballons.to_dict(orient="records")
@@ -63,7 +192,7 @@ for contrat, groupe in df_passagers.groupby("contrat"):
 
 # Préparer les groupes (contrat indivisible)
 groupes = [
-    {"contrat": p["contrat"], "nb": len(p["poids"]), "poids": sum(p["poids"])}
+    {"contrat": p["contrat"], "nb": len(p["poids"]), "poids": sum(p["poids"]) }
     for p in passagers if len(p["poids"]) > 0
 ]
 
@@ -100,7 +229,6 @@ if st.button("🚀 Lancer l'optimisation", type="primary"):
     st.success("✅ Solution optimale trouvée !")
 
     # === Tableau récap par ballon ===
-    #sorted_ballons = sorted(ballons, key=lambda k: int(k['id']))  #ancienne version
     sorted_ballons = sorted(ballons, key=lambda k: int(str(k['id']).strip() or 0))
     recap = []
     for b in sorted_ballons:
