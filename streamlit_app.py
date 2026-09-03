@@ -10,19 +10,13 @@ st.write("Remplir les sections **Ballons** et **Passagers**")
 # === Saisie interactive via tableaux éditables ===
 st.subheader("📦 Ballons")
 defaut_ballons = pd.DataFrame([
-    {"id": "21", "max_poids": 384, "max_passagers": 2},
     {"id": "03", "max_poids": 400, "max_passagers": 2},
-    {"id": "13", "max_poids": 350, "max_passagers": 3},
+    {"id": "09", "max_poids": 350, "max_passagers": 2},
+    {"id": "11", "max_poids": 350, "max_passagers": 2},
     {"id": "02", "max_poids": 500, "max_passagers": 3},
-    {"id": "17", "max_poids": 350, "max_passagers": 3},
-    {"id": "20", "max_poids": 450, "max_passagers": 4},
-    {"id": "15", "max_poids": 900, "max_passagers": 4},
-    {"id": "19", "max_poids": 600, "max_passagers": 4},
-    {"id": "14", "max_poids": 1400, "max_passagers": 8},
-    {"id": "16", "max_poids": 950, "max_passagers": 6},
-    {"id": "22", "max_poids": 2000, "max_passagers": 12},
-    {"id": "18", "max_poids": 1600, "max_passagers": 8},
-    {"id": "23", "max_poids": 2000, "max_passagers": 12},
+    {"id": "07", "max_poids": 2100, "max_passagers": 12},
+    {"id": "08", "max_poids": 1300, "max_passagers": 8},
+    {"id": "10", "max_poids": 300, "max_passagers": 3},
 ])
 df_ballons = st.data_editor(defaut_ballons, num_rows="dynamic", width=500)
 
