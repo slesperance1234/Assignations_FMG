@@ -9,9 +9,9 @@ st.title("🎈 Optimisation des passagers FMG")
 
 st.write("Remplir les sections **Ballons** et **Passagers**, cliquez ensuite sur **Lancer l'optimisation**")
 
-# === Upload PDF/CSV/Excel pour remplacer la liste des passagers ===
+# === Upload PDF pour remplacer la liste des passagers ===
 st.subheader("📥 Importer une liste de passagers")
-uploaded = st.file_uploader("Déposez un fichier PDF contenant le tableau des passagers (contrat en 1ère colonne, poids en 3ème colonne).", type=["pdf", "aspx"])
+uploaded = st.file_uploader("Déposez un fichier PDF contenant le tableau des passagers (contrat en 1ère colonne, poids en 3ème colonne).", type=["pdf"])
 
 def parse_pdf_passengers(file_bytes):
     try:
