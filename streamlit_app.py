@@ -7,11 +7,11 @@ from ortools.linear_solver import pywraplp
 st.set_page_config(page_title="Assignation FMG", page_icon="🎈", layout="wide")
 st.title("🎈 Optimisation des passagers FMG")
 
-st.write("Remplir les sections **Ballons** et **Passagers**")
+st.write("Remplir les sections **Ballons** et **Passagers**, cliquez ensuite sur **Lancer l'optimisation**")
 
 # === Upload PDF/CSV/Excel pour remplacer la liste des passagers ===
 st.subheader("📥 Importer une liste de passagers")
-uploaded = st.file_uploader("Déposez un fichier PDF, CSV ou Excel contenant la table (contrat en 1ère colonne, poids en 3ème colonne). Les poids dans le PDF sont en livres (lbs) et seront conservés tels quels.", type=["pdf", "csv", "xlsx"])
+uploaded = st.file_uploader("Déposez un fichier PDF contenant le tableau des passagers (contrat en 1ère colonne, poids en 3ème colonne).", type=["pdf", "aspx])
 
 def parse_pdf_passengers(file_bytes):
     try:
@@ -148,25 +148,6 @@ if df_passagers is None:
       {"contrat": "145629", "poids": 200},
       {"contrat": "145629", "poids": 145},
       {"contrat": "168087", "poids": 185},
-      {"contrat": "168087", "poids": 125},
-      {"contrat": "171618", "poids": 230},
-      {"contrat": "171618", "poids": 128},
-      {"contrat": "172827", "poids": 140},
-      {"contrat": "172827", "poids": 100},
-      {"contrat": "172827", "poids": 220},
-      {"contrat": "172827", "poids": 225},
-      {"contrat": "178771", "poids": 130},
-      {"contrat": "178771", "poids": 155},
-      {"contrat": "179404", "poids": 154},
-      {"contrat": "179404", "poids": 136},
-      {"contrat": "185212", "poids": 140},
-      {"contrat": "185212", "poids": 143},
-      {"contrat": "185272", "poids": 270},
-      {"contrat": "185272", "poids": 140},
-      {"contrat": "185698", "poids": 159},
-      {"contrat": "185698", "poids": 165},
-      {"contrat": "185698", "poids": 195},
-      {"contrat": "185698", "poids": 113},
      ])
     df_passagers = st.data_editor(defaut_passagers, num_rows="dynamic", width=300)
 else:
