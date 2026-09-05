@@ -4,8 +4,8 @@ import pandas as pd
 import streamlit as st
 from ortools.linear_solver import pywraplp
 
-st.set_page_config(page_title="Assignation FMG", page_icon="🎈", layout="wide")
-st.title("🎈 Optimisation des passagers FMG")
+st.set_page_config(page_title="Optimisation des passagers", page_icon="🎈", layout="wide")
+st.title("🎈 Optimisation des passagers")
 
 st.write("Remplir les sections **Montgolfières** et **Passagers**, cliquez ensuite sur **Lancer l'optimisation**")
 
@@ -117,7 +117,7 @@ if uploaded is not None:
                 df_parsed = None
         if df_parsed is not None:
             # Les poids provenant du PDF sont en livres (lbs) et seront conservés tels quels
-            st.write("Aperçu des passagers importés (vous pouvez corriger ci-dessous) :")
+            st.write("Importation réussie. Vous pouvez modifier ci-dessous au besoin.")
             df_passagers = st.data_editor(df_parsed.rename(columns={"contrat": "contrat", "poids": "poids"}), num_rows="dynamic", width=300)
     except Exception as e:
         st.error(f"Erreur lors de l'import : {e}")
