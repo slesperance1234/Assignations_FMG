@@ -124,18 +124,6 @@ if uploaded is not None:
 
 # === Saisie interactive via tableaux éditables si pas d'import ou après import ===
 if df_passagers is None:
-    st.subheader("📦 Ballons")
-    defaut_ballons = pd.DataFrame([
-        {"id": "03", "max_poids": 400, "max_passagers": 2},
-        {"id": "09", "max_poids": 350, "max_passagers": 2},
-        {"id": "11", "max_poids": 350, "max_passagers": 2},
-        {"id": "02", "max_poids": 500, "max_passagers": 3},
-        {"id": "07", "max_poids": 2100, "max_passagers": 12},
-        {"id": "08", "max_poids": 1300, "max_passagers": 8},
-        {"id": "10", "max_poids": 300, "max_passagers": 3},
-    ])
-    df_ballons = st.data_editor(defaut_ballons, num_rows="dynamic", width=500)
-
     st.subheader("👥 Passagers")
     defaut_passagers = pd.DataFrame([
       {"contrat": "88132", "poids": 185},
@@ -150,6 +138,18 @@ if df_passagers is None:
       {"contrat": "168087", "poids": 185},
      ])
     df_passagers = st.data_editor(defaut_passagers, num_rows="dynamic", width=300)
+
+    st.subheader("📦 Ballons")
+    defaut_ballons = pd.DataFrame([
+        {"id": "03", "max_poids": 400, "max_passagers": 2},
+        {"id": "09", "max_poids": 350, "max_passagers": 2},
+        {"id": "11", "max_poids": 350, "max_passagers": 2},
+        {"id": "02", "max_poids": 500, "max_passagers": 3},
+        {"id": "07", "max_poids": 2100, "max_passagers": 12},
+        {"id": "08", "max_poids": 1300, "max_passagers": 8},
+        {"id": "10", "max_poids": 300, "max_passagers": 3},
+    ])
+    df_ballons = st.data_editor(defaut_ballons, num_rows="dynamic", width=500)
 else:
     # If we had an upload, ensure balloons editor is still shown
     st.subheader("📦 Ballons")
@@ -195,8 +195,8 @@ if st.button("🚀 Lancer l'optimisation", type="primary"):
 
     # Contraintes de capacité par ballon
     for b_idx, b in enumerate(ballons):
-        solver.Add(sum(groupes[g_idx]["nb"] * x[(g_idx, b_idx)] for g_idx in range(len(groupes))) <= b["max_passagers"])
-        solver.Add(sum(groupes[g_idx]["poids"] * x[(g_idx, b_idx)] for g_idx in range(len(groupes))) <= b["max_poids"])
+        solver.Add(sum(groupes[g_idx]["nb"] * x[(g_idx, b_idx)] for g_idx in range(len(groupes))) <= b["max_passagers"]) 
+        solver.Add(sum(groupes[g_idx]["poids"] * x[(g_idx, b_idx)] for g_idx in range(len(groupes))) <= b["max_poids"]) 
 
     # Objectif : maximiser le nombre total de passagers
     solver.Maximize(sum(groupes[g_idx]["nb"] * x[(g_idx, b_idx)] for g_idx in range(len(groupes)) for b_idx in range(len(ballons))))
