@@ -139,7 +139,7 @@ if df_passagers is None:
      ])
     df_passagers = st.data_editor(defaut_passagers, num_rows="dynamic", width=300)
 
-    st.subheader("📦 Ballons")
+    st.subheader("📦 Montgolfières")
     defaut_ballons = pd.DataFrame([
         {"id": "03", "max_poids": 400, "max_passagers": 2},
         {"id": "09", "max_poids": 350, "max_passagers": 2},
@@ -152,7 +152,7 @@ if df_passagers is None:
     df_ballons = st.data_editor(defaut_ballons, num_rows="dynamic", width=500)
 else:
     # If we had an upload, ensure balloons editor is still shown
-    st.subheader("📦 Ballons")
+    st.subheader("📦 Montgolfières")
     defaut_ballons = pd.DataFrame([
         {"id": "03", "max_poids": 400, "max_passagers": 2},
         {"id": "09", "max_poids": 350, "max_passagers": 2},
