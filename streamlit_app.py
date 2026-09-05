@@ -9,6 +9,17 @@ st.title("🎈 Optimisation des passagers")
 
 st.write("Remplir les sections **Montgolfières** et **Passagers**, cliquez ensuite sur **Lancer l'optimisation**")
 
+# === Données par défaut ===
+DEFAUT_BALLONS = [
+    {"id": "03", "max_poids_AM": 400, "max_poids_PM": 400, "max_passagers": 2},
+    {"id": "09", "max_poids_AM": 350, "max_poids_PM": 350, "max_passagers": 2},
+    {"id": "11", "max_poids_AM": 350, "max_poids_PM": 350, "max_passagers": 2},
+    {"id": "02", "max_poids_AM": 500, "max_poids_PM": 500, "max_passagers": 3},
+    {"id": "07", "max_poids_AM": 2100, "max_poids_PM": 2100, "max_passagers": 12},
+    {"id": "08", "max_poids_AM": 1300, "max_poids_PM": 1300, "max_passagers": 8},
+    {"id": "10", "max_poids_AM": 300, "max_poids_PM": 300, "max_passagers": 3},
+]
+
 # === Upload PDF pour remplacer la liste des passagers ===
 st.subheader("📥 Importer une liste de passagers")
 uploaded = st.file_uploader("Déposez un fichier PDF contenant le tableau des passagers (contrat en 1ère colonne, poids en 3ème colonne).", type=["pdf"])
@@ -140,39 +151,12 @@ if df_passagers is None:
      ])
     df_passagers = st.data_editor(defaut_passagers, num_rows="dynamic", width=300)
 
-    st.subheader("📦 Montgolfières")
-    defaut_ballons = pd.DataFrame([
-        {"id": "03", "max_poids_AM": 400, "max_poids_PM": 400, "max_passagers": 2},
-        {"id": "09", "max_poids_AM": 350, "max_poids_PM": 350, "max_passagers": 2},
-        {"id": "11", "max_poids_AM": 350, "max_poids_PM": 350, "max_passagers": 2},
-        {"id": "02", "max_poids_AM": 500, "max_poids_PM": 500, "max_passagers": 3},
-        {"id": "07", "max_poids_AM": 2100, "max_poids_PM": 2100, "max_passagers": 12},
-        {"id": "08", "max_poids_AM": 1300, "max_poids_PM": 1300, "max_passagers": 8},
-        {"id": "10", "max_poids_AM": 300, "max_poids_PM": 300, "max_passagers": 3},
-    ])
-    df_ballons = st.data_editor(defaut_ballons, num_rows="dynamic", width=500)
+st.subheader("📦 Montgolfières")
+df_ballons = st.data_editor(pd.DataFrame(DEFAUT_BALLONS), num_rows="dynamic", width=500)
 
-    # radio choix AM/PM
-    st.write("")
-    periode_selection = st.radio("Période à utiliser pour les capacités (poids)", options=["AM", "PM"], index=0, horizontal=True)
-
-else:
-    # If we had an upload, ensure balloons editor is still shown
-    st.subheader("📦 Montgolfières")
-    defaut_ballons = pd.DataFrame([
-        {"id": "03", "max_poids_AM": 400, "max_poids_PM": 400, "max_passagers": 2},
-        {"id": "09", "max_poids_AM": 350, "max_poids_PM": 350, "max_passagers": 2},
-        {"id": "11", "max_poids_AM": 350, "max_poids_PM": 350, "max_passagers": 2},
-        {"id": "02", "max_poids_AM": 500, "max_poids_PM": 500, "max_passagers": 3},
-        {"id": "07", "max_poids_AM": 2100, "max_poids_PM": 2100, "max_passagers": 12},
-        {"id": "08", "max_poids_AM": 1300, "max_poids_PM": 1300, "max_passagers": 8},
-        {"id": "10", "max_poids_AM": 300, "max_poids_PM": 300, "max_passagers": 3},
-    ])
-    df_ballons = st.data_editor(defaut_ballons, num_rows="dynamic", width=500)
-
-    # radio choix AM/PM
-    st.write("")
-    periode_selection = st.radio("Période à utiliser pour les capacités (poids)", options=["AM", "PM"], index=0, horizontal=True)
+# radio choix AM/PM
+st.write("")
+periode_selection = st.radio("Période à utiliser pour les capacités (poids)", options=["AM", "PM"], index=0, horizontal=True)
 
 # Convertir en listes de dictionnaires
 ballons = df_ballons.to_dict(orient="records")
