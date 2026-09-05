@@ -5,7 +5,7 @@ import streamlit as st
 from ortools.linear_solver import pywraplp
 
 st.set_page_config(page_title="Assignation FMG", page_icon="🎈", layout="wide")
-st.title("🎈 Optimisation des passagers FMG (canal de test)")
+st.title("🎈 Optimisation des passagers FMG")
 
 st.write("Remplir les sections **Montgolfières** et **Passagers**, cliquez ensuite sur **Lancer l'optimisation**")
 
