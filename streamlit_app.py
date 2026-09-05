@@ -12,12 +12,12 @@ st.write("Remplir les sections **Montgolfières** et **Passagers**, cliquez ensu
 # === Données par défaut ===
 DEFAUT_BALLONS = [
     {"id": "03", "max_poids_AM": 400, "max_poids_PM": 400, "max_passagers": 2},
-    {"id": "09", "max_poids_AM": 350, "max_poids_PM": 350, "max_passagers": 2},
-    {"id": "11", "max_poids_AM": 350, "max_poids_PM": 350, "max_passagers": 2},
-    {"id": "02", "max_poids_AM": 500, "max_poids_PM": 500, "max_passagers": 3},
+    {"id": "09", "max_poids_AM": 350, "max_poids_PM": 400, "max_passagers": 2},
+    {"id": "11", "max_poids_AM": 350, "max_poids_PM": 375, "max_passagers": 2},
+    {"id": "02", "max_poids_AM": 500, "max_poids_PM": 600, "max_passagers": 3},
     {"id": "07", "max_poids_AM": 2100, "max_poids_PM": 2100, "max_passagers": 12},
     {"id": "08", "max_poids_AM": 1300, "max_poids_PM": 1300, "max_passagers": 8},
-    {"id": "10", "max_poids_AM": 300, "max_poids_PM": 300, "max_passagers": 3},
+    {"id": "10", "max_poids_AM": 300, "max_poids_PM": 350, "max_passagers": 3},
 ]
 
 # === Upload PDF pour remplacer la liste des passagers ===
