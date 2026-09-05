@@ -7,7 +7,7 @@ from ortools.linear_solver import pywraplp
 st.set_page_config(page_title="Assignation FMG", page_icon="🎈", layout="wide")
 st.title("🎈 Optimisation des passagers FMG (canal de test)")
 
-st.write("Remplir les sections **Ballons** et **Passagers**, cliquez ensuite sur **Lancer l'optimisation**")
+st.write("Remplir les sections **Montgolfières** et **Passagers**, cliquez ensuite sur **Lancer l'optimisation**")
 
 # === Upload PDF pour remplacer la liste des passagers ===
 st.subheader("📥 Importer une liste de passagers")
@@ -229,7 +229,7 @@ if st.button("🚀 Lancer l'optimisation", type="primary"):
             "Poids restant": b["max_poids"] - poids_b,
         })
 
-    st.subheader("📋 Répartition par ballon")
+    st.subheader("📋 Répartition par montgolfière")
     df_recap = pd.DataFrame(recap)
     st.dataframe(df_recap, width="content", hide_index=True, height=(35 * len(df_recap) + 50))
 
