@@ -4,7 +4,7 @@ import pandas as pd
 import streamlit as st
 from ortools.linear_solver import pywraplp
 
-st.set_page_config(page_title="Optimisation des passagers", page_icon="🎈", layout="wide")
+st.set_page_config(page_title="Optimisation de l'assignation des passagers", page_icon="🎈", layout="wide")
 st.title("🎈 Optimisation des passagers")
 
 st.write("Remplir les sections **Montgolfières** et **Passagers**, cliquez ensuite sur **Lancer l'optimisation**")
@@ -259,8 +259,8 @@ if st.button("🚀 Lancer l'optimisation", type="primary"):
     st.dataframe(df_aff, width="content", hide_index=True, height=(35 * len(df_aff) + 50))
 
     # Téléchargements CSV
-    csv_aff = df_aff.to_csv(index=False).encode("utf-8")
-    st.download_button("⬇️ Télécharger les affectations (CSV)", data=csv_aff, file_name="affectations_par_contrat.csv", mime="text/csv")
+   # csv_aff = df_aff.to_csv(index=False).encode("utf-8")
+   # st.download_button("⬇️ Télécharger les affectations (CSV)", data=csv_aff, file_name="affectations_par_contrat.csv", mime="text/csv")
 
 
     # === Résumé global & contrats non embarqués ===
