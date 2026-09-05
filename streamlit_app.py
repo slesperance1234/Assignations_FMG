@@ -99,6 +99,7 @@ def parse_csv_or_excel(uploaded_file):
     out["poids"] = out["poids"].astype(int)
     return out
 
+
 df_passagers = None
 if uploaded is not None:
     try:
@@ -141,28 +142,37 @@ if df_passagers is None:
 
     st.subheader("📦 Montgolfières")
     defaut_ballons = pd.DataFrame([
-        {"id": "03", "max_poids": 400, "max_passagers": 2},
-        {"id": "09", "max_poids": 350, "max_passagers": 2},
-        {"id": "11", "max_poids": 350, "max_passagers": 2},
-        {"id": "02", "max_poids": 500, "max_passagers": 3},
-        {"id": "07", "max_poids": 2100, "max_passagers": 12},
-        {"id": "08", "max_poids": 1300, "max_passagers": 8},
-        {"id": "10", "max_poids": 300, "max_passagers": 3},
+        {"id": "03", "max_poids_AM": 400, "max_poids_PM": 400, "max_passagers": 2},
+        {"id": "09", "max_poids_AM": 350, "max_poids_PM": 350, "max_passagers": 2},
+        {"id": "11", "max_poids_AM": 350, "max_poids_PM": 350, "max_passagers": 2},
+        {"id": "02", "max_poids_AM": 500, "max_poids_PM": 500, "max_passagers": 3},
+        {"id": "07", "max_poids_AM": 2100, "max_poids_PM": 2100, "max_passagers": 12},
+        {"id": "08", "max_poids_AM": 1300, "max_poids_PM": 1300, "max_passagers": 8},
+        {"id": "10", "max_poids_AM": 300, "max_poids_PM": 300, "max_passagers": 3},
     ])
     df_ballons = st.data_editor(defaut_ballons, num_rows="dynamic", width=500)
+
+    # radio choix AM/PM
+    st.write("")
+    periode_selection = st.radio("Période à utiliser pour les capacités (poids)", options=["AM", "PM"], index=0, horizontal=True)
+
 else:
     # If we had an upload, ensure balloons editor is still shown
     st.subheader("📦 Montgolfières")
     defaut_ballons = pd.DataFrame([
-        {"id": "03", "max_poids": 400, "max_passagers": 2},
-        {"id": "09", "max_poids": 350, "max_passagers": 2},
-        {"id": "11", "max_poids": 350, "max_passagers": 2},
-        {"id": "02", "max_poids": 500, "max_passagers": 3},
-        {"id": "07", "max_poids": 2100, "max_passagers": 12},
-        {"id": "08", "max_poids": 1300, "max_passagers": 8},
-        {"id": "10", "max_poids": 300, "max_passagers": 3},
+        {"id": "03", "max_poids_AM": 400, "max_poids_PM": 400, "max_passagers": 2},
+        {"id": "09", "max_poids_AM": 350, "max_poids_PM": 350, "max_passagers": 2},
+        {"id": "11", "max_poids_AM": 350, "max_poids_PM": 350, "max_passagers": 2},
+        {"id": "02", "max_poids_AM": 500, "max_poids_PM": 500, "max_passagers": 3},
+        {"id": "07", "max_poids_AM": 2100, "max_poids_PM": 2100, "max_passagers": 12},
+        {"id": "08", "max_poids_AM": 1300, "max_poids_PM": 1300, "max_passagers": 8},
+        {"id": "10", "max_poids_AM": 300, "max_poids_PM": 300, "max_passagers": 3},
     ])
     df_ballons = st.data_editor(defaut_ballons, num_rows="dynamic", width=500)
+
+    # radio choix AM/PM
+    st.write("")
+    periode_selection = st.radio("Période à utiliser pour les capacités (poids)", options=["AM", "PM"], index=0, horizontal=True)
 
 # Convertir en listes de dictionnaires
 ballons = df_ballons.to_dict(orient="records")
@@ -194,9 +204,12 @@ if st.button("🚀 Lancer l'optimisation", type="primary"):
         solver.Add(sum(x[(g_idx, b_idx)] for b_idx in range(len(ballons))) <= 1)
 
     # Contraintes de capacité par ballon
+    max_poids_key = f"max_poids_{periode_selection}"
     for b_idx, b in enumerate(ballons):
+        # support backward-compat: si l'utilisateur a une colonne max_poids, on la prend en fallback
+        b_max_poids = b.get(max_poids_key, b.get("max_poids", 0))
         solver.Add(sum(groupes[g_idx]["nb"] * x[(g_idx, b_idx)] for g_idx in range(len(groupes))) <= b["max_passagers"]) 
-        solver.Add(sum(groupes[g_idx]["poids"] * x[(g_idx, b_idx)] for g_idx in range(len(groupes))) <= b["max_poids"]) 
+        solver.Add(sum(groupes[g_idx]["poids"] * x[(g_idx, b_idx)] for g_idx in range(len(groupes))) <= b_max_poids) 
 
     # Objectif : maximiser le nombre total de passagers
     solver.Maximize(sum(groupes[g_idx]["nb"] * x[(g_idx, b_idx)] for g_idx in range(len(groupes)) for b_idx in range(len(ballons))))
@@ -221,12 +234,13 @@ if st.button("🚀 Lancer l'optimisation", type="primary"):
                 contrats_b.append(g["contrat"])
                 nb_b += g["nb"]
                 poids_b += g["poids"]
+        b_max_poids = b.get(max_poids_key, b.get("max_poids", 0))
         recap.append({
             "Ballon": b['id'],
             "Contrats": ", ".join(contrats_b) if contrats_b else "-",
             "Passagers": f"{nb_b}/{b['max_passagers']}",
-            "Poids utilisé": f"{poids_b}/{b['max_poids']}",
-            "Poids restant": b["max_poids"] - poids_b,
+            "Poids utilisé": f"{poids_b}/{b_max_poids}",
+            "Poids restant": b_max_poids - poids_b,
         })
 
     st.subheader("📋 Répartition par montgolfière")
