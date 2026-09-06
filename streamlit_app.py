@@ -165,92 +165,6 @@ groupes = [
     for p in passagers if len(p["poids"]) > 0
 ]
 
-def dataframe_to_html(df, title):
-    """Convertit un DataFrame en HTML imprimable"""
-    html = f"""
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <meta charset="UTF-8">
-        <title>{title}</title>
-        <style>
-            body {{
-                font-family: Arial, sans-serif;
-                margin: 20px;
-                background-color: #f5f5f5;
-            }}
-            h1 {{
-                color: #0066cc;
-                text-align: center;
-                margin-bottom: 30px;
-            }}
-            table {{
-                width: 100%;
-                border-collapse: collapse;
-                background-color: white;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-                margin-bottom: 30px;
-            }}
-            th {{
-                background-color: #0066cc;
-                color: white;
-                padding: 12px;
-                text-align: left;
-                font-weight: bold;
-            }}
-            td {{
-                padding: 10px 12px;
-                border-bottom: 1px solid #ddd;
-            }}
-            tr:hover {{
-                background-color: #f0f0f0;
-            }}
-            tr:nth-child(even) {{
-                background-color: #f9f9f9;
-            }}
-            @media print {{
-                body {{
-                    margin: 0;
-                    background-color: white;
-                }}
-                table {{
-                    box-shadow: none;
-                    page-break-inside: avoid;
-                }}
-            }}
-        </style>
-    </head>
-    <body>
-        <h1>{title}</h1>
-        <table>
-            <thead>
-                <tr>
-    """
-    
-    # Ajouter les en-têtes
-    for col in df.columns:
-        html += f"<th>{col}</th>"
-    html += """
-                </tr>
-            </thead>
-            <tbody>
-    """
-    
-    # Ajouter les lignes
-    for _, row in df.iterrows():
-        html += "<tr>"
-        for val in row:
-            html += f"<td>{val}</td>"
-        html += "</tr>"
-    
-    html += """
-            </tbody>
-        </table>
-    </body>
-    </html>
-    """
-    return html
-
 if st.button("🚀 Lancer l'optimisation", type="primary"):
     solver = pywraplp.Solver.CreateSolver('SCIP')
     if solver is None:
@@ -315,21 +229,14 @@ if st.button("🚀 Lancer l'optimisation", type="primary"):
     df_recap = pd.DataFrame(recap)
     st.dataframe(df_recap, width="content", hide_index=True, height=(35 * len(df_recap) + 50))
     
-    # Bouton pour ouvrir la répartition en HTML imprimable
-    col1, col2 = st.columns(2)
-    with col1:
-        html_recap = dataframe_to_html(df_recap, "Répartition par Montgolfière")
-        st.download_button(
-            label="📥 Télécharger répartition (HTML)",
-            data=html_recap,
-            file_name="repartition_montgolfieres.html",
-            mime="text/html"
-        )
-    with col2:
-        st.markdown(
-            f'<a href="data:text/html;base64,{__import__("base64").b64encode(html_recap.encode()).decode()}" target="_blank">🖨️ Ouvrir en HTML (nouvelle fenêtre)</a>',
-            unsafe_allow_html=True
-        )
+    # Bouton d'impression / téléchargement pour la répartition
+    csv_recap = df_recap.to_csv(index=False).encode("utf-8")
+    st.download_button(
+        label="🖨️ Imprimer / Télécharger la répartition (CSV)",
+        data=csv_recap,
+        file_name="repartition_montgolfieres.csv",
+        mime="text/csv"
+    )
 
     # === Affectations par contrat ===
     affectations = []
@@ -356,21 +263,14 @@ if st.button("🚀 Lancer l'optimisation", type="primary"):
     st.subheader("📑 Affectations par contrat")
     st.dataframe(df_aff, width="content", hide_index=True, height=(35 * len(df_aff) + 50))
     
-    # Bouton pour ouvrir les affectations en HTML imprimable
-    col1, col2 = st.columns(2)
-    with col1:
-        html_aff = dataframe_to_html(df_aff, "Affectations par Contrat")
-        st.download_button(
-            label="📥 Télécharger affectations (HTML)",
-            data=html_aff,
-            file_name="affectations_par_contrat.html",
-            mime="text/html"
-        )
-    with col2:
-        st.markdown(
-            f'<a href="data:text/html;base64,{__import__("base64").b64encode(html_aff.encode()).decode()}" target="_blank">🖨️ Ouvrir en HTML (nouvelle fenêtre)</a>',
-            unsafe_allow_html=True
-        )
+    # Bouton d'impression / téléchargement pour les affectations
+    csv_aff = df_aff.to_csv(index=False).encode("utf-8")
+    st.download_button(
+        label="🖨️ Imprimer / Télécharger les affectations (CSV)",
+        data=csv_aff,
+        file_name="affectations_par_contrat.csv",
+        mime="text/csv"
+    )
 
     non_embarques = df_aff[df_aff["Ballon"] == "-"]
     if len(non_embarques) > 0:
