@@ -9,4 +9,3 @@ openpyxl>=3.1.0  # pour lecture/écriture Excel
 ortools>=9.9.0
 
 pdfplumber
-reportlab
