@@ -4,7 +4,7 @@ import pandas as pd
 import streamlit as st
 from ortools.linear_solver import pywraplp
 
-st.set_page_config(page_title="Optimisation de l'assignation des passagers", page_icon="🎈", layout="wide")
+st.set_page_config(page_title="Optimisation des passagers", page_icon="🎈", layout="wide")
 st.title("🎈 Optimisation des passagers")
 
 st.write("Remplir les sections **Montgolfières** et **Passagers**, cliquez ensuite sur **Lancer l'optimisation**")
@@ -12,12 +12,12 @@ st.write("Remplir les sections **Montgolfières** et **Passagers**, cliquez ensu
 # === Données par défaut ===
 DEFAUT_BALLONS = [
     {"id": "03", "max_poids_AM": 400, "max_poids_PM": 400, "max_passagers": 2},
-    {"id": "09", "max_poids_AM": 350, "max_poids_PM": 400, "max_passagers": 2},
-    {"id": "11", "max_poids_AM": 350, "max_poids_PM": 375, "max_passagers": 2},
-    {"id": "02", "max_poids_AM": 500, "max_poids_PM": 600, "max_passagers": 3},
+    {"id": "09", "max_poids_AM": 400, "max_poids_PM": 350, "max_passagers": 2},
+    {"id": "11", "max_poids_AM": 375, "max_poids_PM": 350, "max_passagers": 2},
+    {"id": "02", "max_poids_AM": 600, "max_poids_PM": 500, "max_passagers": 3},
     {"id": "07", "max_poids_AM": 2100, "max_poids_PM": 2100, "max_passagers": 12},
     {"id": "08", "max_poids_AM": 1300, "max_poids_PM": 1300, "max_passagers": 8},
-    {"id": "10", "max_poids_AM": 300, "max_poids_PM": 350, "max_passagers": 3},
+    {"id": "10", "max_poids_AM": 350, "max_poids_PM": 300, "max_passagers": 3},
 ]
 
 # === Upload PDF pour remplacer la liste des passagers ===
@@ -138,16 +138,11 @@ if uploaded is not None:
 if df_passagers is None:
     st.subheader("👥 Passagers")
     defaut_passagers = pd.DataFrame([
-      {"contrat": "88132", "poids": 185},
-      {"contrat": "88132", "poids": 225},
-      {"contrat": "88132", "poids": 130},
-      {"contrat": "119420", "poids": 220},
-      {"contrat": "119420", "poids": 145},
-      {"contrat": "134645", "poids": 165},
-      {"contrat": "134645", "poids": 187},
-      {"contrat": "145629", "poids": 200},
-      {"contrat": "145629", "poids": 145},
-      {"contrat": "168087", "poids": 185},
+      {"contrat": "22132", "poids": 185},
+      {"contrat": "22132", "poids": 225},
+      {"contrat": "29420", "poids": 220},
+      {"contrat": "29420", "poids": 145},
+
      ])
     df_passagers = st.data_editor(defaut_passagers, num_rows="dynamic", width=300)
 
