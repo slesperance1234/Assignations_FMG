@@ -228,6 +228,15 @@ if st.button("🚀 Lancer l'optimisation", type="primary"):
     st.subheader("📋 Répartition par montgolfière")
     df_recap = pd.DataFrame(recap)
     st.dataframe(df_recap, width="content", hide_index=True, height=(35 * len(df_recap) + 50))
+    
+    # Bouton d'impression / téléchargement pour la répartition
+    csv_recap = df_recap.to_csv(index=False).encode("utf-8")
+    st.download_button(
+        label="🖨️ Imprimer / Télécharger la répartition (CSV)",
+        data=csv_recap,
+        file_name="repartition_montgolfieres.csv",
+        mime="text/csv"
+    )
 
     # === Affectations par contrat ===
     affectations = []
@@ -253,13 +262,15 @@ if st.button("🚀 Lancer l'optimisation", type="primary"):
 
     st.subheader("📑 Affectations par contrat")
     st.dataframe(df_aff, width="content", hide_index=True, height=(35 * len(df_aff) + 50))
-
-    # Téléchargements CSV
-   # csv_aff = df_aff.to_csv(index=False).encode("utf-8")
-   # st.download_button("⬇️ Télécharger les affectations (CSV)", data=csv_aff, file_name="affectations_par_contrat.csv", mime="text/csv")
-
-
-
+    
+    # Bouton d'impression / téléchargement pour les affectations
+    csv_aff = df_aff.to_csv(index=False).encode("utf-8")
+    st.download_button(
+        label="🖨️ Imprimer / Télécharger les affectations (CSV)",
+        data=csv_aff,
+        file_name="affectations_par_contrat.csv",
+        mime="text/csv"
+    )
 
     non_embarques = df_aff[df_aff["Ballon"] == "-"]
     if len(non_embarques) > 0:
