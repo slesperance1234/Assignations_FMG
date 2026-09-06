@@ -165,6 +165,58 @@ groupes = [
     for p in passagers if len(p["poids"]) > 0
 ]
 
+def dataframe_to_pdf(df, title):
+    """Convertit un DataFrame en PDF"""
+    try:
+        from reportlab.lib.pagesizes import letter, A4
+        from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+        from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+        from reportlab.lib.units import inch
+        from reportlab.lib import colors
+    except ImportError:
+        raise RuntimeError("Le package 'reportlab' n'est pas installé. Installez-le avec `pip install reportlab`.")
+    
+    pdf_buffer = io.BytesIO()
+    doc = SimpleDocTemplate(pdf_buffer, pagesize=A4)
+    elements = []
+    
+    # Ajouter le titre
+    styles = getSampleStyleSheet()
+    title_style = ParagraphStyle(
+        'CustomTitle',
+        parent=styles['Heading1'],
+        fontSize=16,
+        textColor=colors.HexColor('#0066cc'),
+        spaceAfter=30,
+        alignment=1  # centré
+    )
+    elements.append(Paragraph(title, title_style))
+    elements.append(Spacer(1, 0.3*inch))
+    
+    # Convertir le DataFrame en liste pour le tableau
+    data = [list(df.columns)] + df.values.tolist()
+    
+    # Créer le tableau
+    table = Table(data)
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#0066cc')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 12),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black),
+        ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+        ('FONTSIZE', (0, 1), (-1, -1), 10),
+        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.lightgrey]),
+    ]))
+    
+    elements.append(table)
+    doc.build(elements)
+    pdf_buffer.seek(0)
+    return pdf_buffer.getvalue()
+
 if st.button("🚀 Lancer l'optimisation", type="primary"):
     solver = pywraplp.Solver.CreateSolver('SCIP')
     if solver is None:
@@ -229,14 +281,17 @@ if st.button("🚀 Lancer l'optimisation", type="primary"):
     df_recap = pd.DataFrame(recap)
     st.dataframe(df_recap, width="content", hide_index=True, height=(35 * len(df_recap) + 50))
     
-    # Bouton d'impression / téléchargement pour la répartition
-    csv_recap = df_recap.to_csv(index=False).encode("utf-8")
-    st.download_button(
-        label="🖨️ Imprimer / Télécharger la répartition (CSV)",
-        data=csv_recap,
-        file_name="repartition_montgolfieres.csv",
-        mime="text/csv"
-    )
+    # Bouton d'impression PDF pour la répartition
+    try:
+        pdf_recap = dataframe_to_pdf(df_recap, "Répartition par Montgolfière")
+        st.download_button(
+            label="🖨️ Imprimer / Télécharger en PDF",
+            data=pdf_recap,
+            file_name="repartition_montgolfieres.pdf",
+            mime="application/pdf"
+        )
+    except RuntimeError as e:
+        st.error(str(e))
 
     # === Affectations par contrat ===
     affectations = []
@@ -263,14 +318,17 @@ if st.button("🚀 Lancer l'optimisation", type="primary"):
     st.subheader("📑 Affectations par contrat")
     st.dataframe(df_aff, width="content", hide_index=True, height=(35 * len(df_aff) + 50))
     
-    # Bouton d'impression / téléchargement pour les affectations
-    csv_aff = df_aff.to_csv(index=False).encode("utf-8")
-    st.download_button(
-        label="🖨️ Imprimer / Télécharger les affectations (CSV)",
-        data=csv_aff,
-        file_name="affectations_par_contrat.csv",
-        mime="text/csv"
-    )
+    # Bouton d'impression PDF pour les affectations
+    try:
+        pdf_aff = dataframe_to_pdf(df_aff, "Affectations par Contrat")
+        st.download_button(
+            label="🖨️ Imprimer / Télécharger en PDF",
+            data=pdf_aff,
+            file_name="affectations_par_contrat.pdf",
+            mime="application/pdf"
+        )
+    except RuntimeError as e:
+        st.error(str(e))
 
     non_embarques = df_aff[df_aff["Ballon"] == "-"]
     if len(non_embarques) > 0:
