@@ -21,7 +21,7 @@ DEFAUT_BALLONS = [
 ]
 
 # === Upload PDF pour remplacer la liste des passagers ===
-st.subheader("📥 Importer une liste de passagers")
+st.subheader("👥 Passagers")
 uploaded = st.file_uploader("Déposez un fichier PDF contenant le tableau des passagers (contrat en 1ère colonne, poids en 3ème colonne).", type=["pdf"])
 
 def parse_pdf_passengers(file_bytes):
@@ -136,7 +136,6 @@ if uploaded is not None:
 
 # === Saisie interactive via tableaux éditables si pas d'import ou après import ===
 if df_passagers is None:
-    st.subheader("👥 Passagers")
     defaut_passagers = pd.DataFrame([
       {"contrat": "1234", "poids": 185},
       {"contrat": "1234", "poids": 225},
