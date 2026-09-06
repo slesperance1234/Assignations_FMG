@@ -138,10 +138,10 @@ if uploaded is not None:
 if df_passagers is None:
     st.subheader("👥 Passagers")
     defaut_passagers = pd.DataFrame([
-      {"contrat": "22132", "poids": 185},
-      {"contrat": "22132", "poids": 225},
-      {"contrat": "29420", "poids": 220},
-      {"contrat": "29420", "poids": 145},
+      {"contrat": "1234", "poids": 185},
+      {"contrat": "1234", "poids": 225},
+      {"contrat": "5678", "poids": 220},
+      {"contrat": "5678", "poids": 145},
 
      ])
     df_passagers = st.data_editor(defaut_passagers, num_rows="dynamic", width=300)
