@@ -198,12 +198,13 @@ if st.button("🚀 Lancer l'optimisation", type="primary"):
     if status != pywraplp.Solver.OPTIMAL:
         st.error("Pas de solution optimale trouvée 😥")
         st.stop()
-
     st.success("✅ Solution optimale trouvée !")
+    
     # === Résumé global & contrats non embarqués ===
     total_objectif = int(solver.Objective().Value())
     total_demandes = sum(g["nb"] for g in groupes)
     st.info(f"**Passagers transportés : {total_objectif} / {total_demandes}**")
+    
     # === Tableau récap par ballon ===
     sorted_ballons = sorted(ballons, key=lambda k: int(str(k['id']).strip() or 0))
     recap = []
