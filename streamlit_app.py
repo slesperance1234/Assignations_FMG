@@ -146,7 +146,7 @@ if df_passagers is None:
      ])
     df_passagers = st.data_editor(defaut_passagers, num_rows="dynamic", width=300)
 
-st.subheader("📦 Montgolfières")
+st.subheader("🎈 Montgolfières")
 df_ballons = st.data_editor(pd.DataFrame(DEFAUT_BALLONS), num_rows="dynamic", width=500)
 
 # radio choix AM/PM
