@@ -4,10 +4,21 @@ import pandas as pd
 import streamlit as st
 from ortools.linear_solver import pywraplp
 
-st.set_page_config(page_title="Assignation FMG", page_icon="🎈", layout="wide")
-st.title("🎈 Optimisation des passagers FMG")
+st.set_page_config(page_title="Optimisation des passagers", page_icon="🎈", layout="wide")
+st.title("🎈 Optimisation des passagers")
 
-st.write("Remplir les sections **Ballons** et **Passagers**, cliquez ensuite sur **Lancer l'optimisation**")
+st.write("Remplir les sections **Montgolfières** et **Passagers**, cliquez ensuite sur **Lancer l'optimisation**")
+
+# === Données par défaut ===
+DEFAUT_BALLONS = [
+    {"id": "03", "max_poids_AM": 400, "max_poids_PM": 400, "max_passagers": 2},
+    {"id": "09", "max_poids_AM": 400, "max_poids_PM": 350, "max_passagers": 2},
+    {"id": "11", "max_poids_AM": 375, "max_poids_PM": 350, "max_passagers": 2},
+    {"id": "02", "max_poids_AM": 600, "max_poids_PM": 500, "max_passagers": 3},
+    {"id": "07", "max_poids_AM": 2100, "max_poids_PM": 2100, "max_passagers": 12},
+    {"id": "08", "max_poids_AM": 1300, "max_poids_PM": 1300, "max_passagers": 8},
+    {"id": "10", "max_poids_AM": 350, "max_poids_PM": 300, "max_passagers": 3},
+]
 
 # === Upload PDF pour remplacer la liste des passagers ===
 st.subheader("📥 Importer une liste de passagers")
@@ -99,6 +110,7 @@ def parse_csv_or_excel(uploaded_file):
     out["poids"] = out["poids"].astype(int)
     return out
 
+
 df_passagers = None
 if uploaded is not None:
     try:
@@ -117,52 +129,29 @@ if uploaded is not None:
                 df_parsed = None
         if df_parsed is not None:
             # Les poids provenant du PDF sont en livres (lbs) et seront conservés tels quels
-            st.write("Aperçu des passagers importés (vous pouvez corriger ci-dessous) :")
+            st.write("Importation réussie. Vous pouvez modifier ci-dessous au besoin.")
             df_passagers = st.data_editor(df_parsed.rename(columns={"contrat": "contrat", "poids": "poids"}), num_rows="dynamic", width=300)
     except Exception as e:
         st.error(f"Erreur lors de l'import : {e}")
 
 # === Saisie interactive via tableaux éditables si pas d'import ou après import ===
 if df_passagers is None:
-    st.subheader("📦 Ballons")
-    defaut_ballons = pd.DataFrame([
-        {"id": "03", "max_poids": 400, "max_passagers": 2},
-        {"id": "09", "max_poids": 350, "max_passagers": 2},
-        {"id": "11", "max_poids": 350, "max_passagers": 2},
-        {"id": "02", "max_poids": 500, "max_passagers": 3},
-        {"id": "07", "max_poids": 2100, "max_passagers": 12},
-        {"id": "08", "max_poids": 1300, "max_passagers": 8},
-        {"id": "10", "max_poids": 300, "max_passagers": 3},
-    ])
-    df_ballons = st.data_editor(defaut_ballons, num_rows="dynamic", width=500)
-
     st.subheader("👥 Passagers")
     defaut_passagers = pd.DataFrame([
-      {"contrat": "88132", "poids": 185},
-      {"contrat": "88132", "poids": 225},
-      {"contrat": "88132", "poids": 130},
-      {"contrat": "119420", "poids": 220},
-      {"contrat": "119420", "poids": 145},
-      {"contrat": "134645", "poids": 165},
-      {"contrat": "134645", "poids": 187},
-      {"contrat": "145629", "poids": 200},
-      {"contrat": "145629", "poids": 145},
-      {"contrat": "168087", "poids": 185},
+      {"contrat": "1234", "poids": 185},
+      {"contrat": "1234", "poids": 225},
+      {"contrat": "5678", "poids": 220},
+      {"contrat": "5678", "poids": 145},
+
      ])
     df_passagers = st.data_editor(defaut_passagers, num_rows="dynamic", width=300)
-else:
-    # If we had an upload, ensure balloons editor is still shown
-    st.subheader("📦 Ballons")
-    defaut_ballons = pd.DataFrame([
-        {"id": "03", "max_poids": 400, "max_passagers": 2},
-        {"id": "09", "max_poids": 350, "max_passagers": 2},
-        {"id": "11", "max_poids": 350, "max_passagers": 2},
-        {"id": "02", "max_poids": 500, "max_passagers": 3},
-        {"id": "07", "max_poids": 2100, "max_passagers": 12},
-        {"id": "08", "max_poids": 1300, "max_passagers": 8},
-        {"id": "10", "max_poids": 300, "max_passagers": 3},
-    ])
-    df_ballons = st.data_editor(defaut_ballons, num_rows="dynamic", width=500)
+
+st.subheader("📦 Montgolfières")
+df_ballons = st.data_editor(pd.DataFrame(DEFAUT_BALLONS), num_rows="dynamic", width=500)
+
+# radio choix AM/PM
+st.write("")
+periode_selection = st.radio("Période à utiliser pour les capacités (poids)", options=["AM", "PM"], index=0, horizontal=True)
 
 # Convertir en listes de dictionnaires
 ballons = df_ballons.to_dict(orient="records")
@@ -194,9 +183,12 @@ if st.button("🚀 Lancer l'optimisation", type="primary"):
         solver.Add(sum(x[(g_idx, b_idx)] for b_idx in range(len(ballons))) <= 1)
 
     # Contraintes de capacité par ballon
+    max_poids_key = f"max_poids_{periode_selection}"
     for b_idx, b in enumerate(ballons):
-        solver.Add(sum(groupes[g_idx]["nb"] * x[(g_idx, b_idx)] for g_idx in range(len(groupes))) <= b["max_passagers"])
-        solver.Add(sum(groupes[g_idx]["poids"] * x[(g_idx, b_idx)] for g_idx in range(len(groupes))) <= b["max_poids"])
+        # support backward-compat: si l'utilisateur a une colonne max_poids, on la prend en fallback
+        b_max_poids = b.get(max_poids_key, b.get("max_poids", 0))
+        solver.Add(sum(groupes[g_idx]["nb"] * x[(g_idx, b_idx)] for g_idx in range(len(groupes))) <= b["max_passagers"]) 
+        solver.Add(sum(groupes[g_idx]["poids"] * x[(g_idx, b_idx)] for g_idx in range(len(groupes))) <= b_max_poids) 
 
     # Objectif : maximiser le nombre total de passagers
     solver.Maximize(sum(groupes[g_idx]["nb"] * x[(g_idx, b_idx)] for g_idx in range(len(groupes)) for b_idx in range(len(ballons))))
@@ -221,15 +213,16 @@ if st.button("🚀 Lancer l'optimisation", type="primary"):
                 contrats_b.append(g["contrat"])
                 nb_b += g["nb"]
                 poids_b += g["poids"]
+        b_max_poids = b.get(max_poids_key, b.get("max_poids", 0))
         recap.append({
             "Ballon": b['id'],
             "Contrats": ", ".join(contrats_b) if contrats_b else "-",
             "Passagers": f"{nb_b}/{b['max_passagers']}",
-            "Poids utilisé": f"{poids_b}/{b['max_poids']}",
-            "Poids restant": b["max_poids"] - poids_b,
+            "Poids utilisé": f"{poids_b}/{b_max_poids}",
+            "Poids restant": b_max_poids - poids_b,
         })
 
-    st.subheader("📋 Répartition par ballon")
+    st.subheader("📋 Répartition par montgolfière")
     df_recap = pd.DataFrame(recap)
     st.dataframe(df_recap, width="content", hide_index=True, height=(35 * len(df_recap) + 50))
 
@@ -259,8 +252,8 @@ if st.button("🚀 Lancer l'optimisation", type="primary"):
     st.dataframe(df_aff, width="content", hide_index=True, height=(35 * len(df_aff) + 50))
 
     # Téléchargements CSV
-    csv_aff = df_aff.to_csv(index=False).encode("utf-8")
-    st.download_button("⬇️ Télécharger les affectations (CSV)", data=csv_aff, file_name="affectations_par_contrat.csv", mime="text/csv")
+   # csv_aff = df_aff.to_csv(index=False).encode("utf-8")
+   # st.download_button("⬇️ Télécharger les affectations (CSV)", data=csv_aff, file_name="affectations_par_contrat.csv", mime="text/csv")
 
 
     # === Résumé global & contrats non embarqués ===
