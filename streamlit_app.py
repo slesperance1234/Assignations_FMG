@@ -253,9 +253,7 @@ if st.button("🚀 Lancer l'optimisation", type="primary"):
 
     st.subheader("📑 Affectations par contrat")
     st.dataframe(df_aff, width="content", hide_index=True, height=(35 * len(df_aff) + 50))
-
-    st.info(f"**Passagers transportés : {total_objectif} / {total_demandes}**")
-    
+       
     non_embarques = df_aff[df_aff["Ballon"] == "-"]
     if len(non_embarques) > 0:
         st.divider()
